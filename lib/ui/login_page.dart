@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tokokita/ui/registrasi_page.dart';
+import 'package:tokokita/ui/produk_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -19,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text("Login Defit"),
+        title: const Text("Login Defit"),   // Sesuai instruksi nama panggilan
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -44,6 +45,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // ===============================
+  // TextField Email
+  // ===============================
   Widget _emailField() {
     return TextFormField(
       controller: _emailController,
@@ -60,6 +64,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // ===============================
+  // TextField Password
+  // ===============================
   Widget _passwordField() {
     return TextFormField(
       controller: _passwordController,
@@ -76,15 +83,25 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // ===============================
+  // Tombol Login
+  // ===============================
   Widget _buttonLogin() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.grey[300], // abu sesuai modul
+        backgroundColor: Colors.grey[300],  
         foregroundColor: Colors.black,
         padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
       ),
       onPressed: () {
         if (_formKey.currentState!.validate()) {
+          // Setelah valid → masuk ke List Produk
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ProdukPage(),
+            ),
+          );
         }
       },
       child: const Text("Login"),
@@ -102,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
       child: const Text(
         "Registrasi",
         style: TextStyle(
-          color: Colors.blue, // link biru
+          color: Colors.blue,
           fontSize: 14,
         ),
       ),

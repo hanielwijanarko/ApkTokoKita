@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tokokita/ui/produk_page.dart';
+import 'package:tokokita/ui/login_page.dart';
+// import 'package:tokokita/ui/produk_page.dart'; // tidak jadi home
 
 void main() {
   runApp(const MyApp());
@@ -13,10 +14,11 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       title: "Toko Kita",
       debugShowCheckedModeBanner: false,
-      home: ProdukPage(),
+      home: LoginPage(),   // ← ARAHKAN KE LOGIN DULU
     );
   }
 }
+
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});

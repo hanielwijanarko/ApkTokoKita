@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:tokokita/helpers/api_url.dart';
+import 'package:tokokita/model/registrasi.dart';
 
 class RegistrasiPage extends StatefulWidget {
-  const RegistrasiPage({Key? key}) : super(key: key);
+  const RegistrasiPage({super.key});
 
   @override
   _RegistrasiPageState createState() => _RegistrasiPageState();
@@ -21,7 +25,7 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text("Registrasi Defit"),
+        title: const Text("Registrasi Aulia"),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -129,9 +133,106 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
       ),
       onPressed: () {
         if (_formKey.currentState!.validate()) {
+          _submit();
         }
       },
       child: const Text("Registrasi"),
+    );
+  }
+
+  void _submit() {
+    _formKey.currentState!.save();
+    final Map<String, dynamic> data = {
+      "nama": _namaController.text,
+      "email": _emailController.text,
+      "password": _passwordController.text,
+    };
+
+    http.post(
+      Uri.parse(ApiUrl.registrasi),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(data),
+    ).then((response) {
+      final responseData = json.decode(response.body);
+      Registrasi registrasi = Registrasi.fromJson(responseData);
+
+      if (registrasi.code == 200) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => SuccessDialog(
+            description: "Registrasi berhasil, silahkan login",
+            okClick: () {
+              Navigator.pop(context);
+            },
+          ),
+        );
+      } else {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => const WarningDialog(
+            description: "Registrasi gagal, silahkan coba lagi",
+          ),
+        );
+      }
+    }).catchError((error) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) => const WarningDialog(
+          description: "Registrasi gagal, silahkan coba lagi",
+        ),
+      );
+    });
+  }
+}
+
+// Dialog Success
+class SuccessDialog extends StatelessWidget {
+  final String? description;
+  final VoidCallback? okClick;
+
+  const SuccessDialog({Key? key, this.description, this.okClick})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Berhasil"),
+      content: Text(description!),
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            okClick!();
+          },
+          child: const Text("OK"),
+        ),
+      ],
+    );
+  }
+}
+
+// Dialog Warning
+class WarningDialog extends StatelessWidget {
+  final String? description;
+
+  const WarningDialog({Key? key, this.description}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Peringatan"),
+      content: Text(description!),
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text("OK"),
+        ),
+      ],
     );
   }
 }

@@ -1,242 +1,273 @@
+# 🛒 Aplikasi Toko Kita - CRUD Produk dengan REST API
 
-# 🎯 **README.md — TUGAS 8 (Pertemuan 10)**
+## 👤 Informasi Praktikan
+- **Nama**: Naufal Aulia Pratama
+- **NIM**: H1D023036
+- **Shift Awal / Baru**: E / A
 
-### 🚀 *Praktikum Pemrograman Mobile — CRUD Produk Flutter + CodeIgniter 4*
 
----
+## 📱 Deskripsi
+Aplikasi **Toko Kita** adalah aplikasi mobile e-commerce sederhana yang dibuat menggunakan **Flutter** dan **CodeIgniter 4** sebagai backend REST API. Aplikasi ini mendemonstrasikan implementasi lengkap operasi CRUD (Create, Read, Update, Delete) produk dengan sistem autentikasi berbasis token.
 
-<div align="center">
+Pengguna dapat mendaftar, login, melihat daftar produk, menambah produk baru, mengubah data produk, dan menghapus produk. Semua data disimpan di database MySQL dan diakses melalui REST API yang aman.
 
-# 🛒 **Aplikasi CRUD Produk Flutter**
+## 🏗️ Arsitektur Aplikasi
 
-### *Dengan Action Bar menggunakan nama panggilan — Defit*
-
-![Flutter](https://img.shields.io/badge/Flutter-3.16-blue?logo=flutter)
-![Dart](https://img.shields.io/badge/Dart-3.2-blue?logo=dart)
-![Mobile](https://img.shields.io/badge/Mobile%20App-Praktikum-green)
-![Status](https://img.shields.io/badge/Tugas-Selesai-success)
-
-</div>
-
----
-
-# 👤 **Identitas Mahasiswa**
-
-| Keterangan        | Data                            |
-| ----------------- | ------------------------------- |
-| **Nama**          | Defit Bagus Saputra             |
-| **NIM**           | H1D023036                       |
-| **Kelas / Shift** | Shift C (Awal) / Shift F (Baru) |
-| **Mata Kuliah**   | Praktikum Pemrograman Mobile    |
-
----
-
-# 📱 **Deskripsi Aplikasi**
-
-Aplikasi ini merupakan implementasi UI CRUD Produk sesuai Modul Pertemuan 10.
-Semua **Action Bar sudah memakai nama panggilan "Defit"**, seperti:
-
-* **Login Defit**
-* **Registrasi Defit**
-* **List Produk Defit**
-* **Tambah Produk Defit**
-* **Ubah Produk Defit**
-* **Detail Produk Defit**
-
-Aplikasi ini dibuat dengan Flutter dan nantinya akan dihubungkan ke REST API CodeIgniter 4.
-
----
-
-# 🧩 **Struktur Folder**
-
+### 1. Struktur Projek
 ```
-lib/
- ├── main.dart
- ├── model/
- │    ├── produk.dart
- │    ├── login.dart
- │    └── registrasi.dart
- └── ui/
-      ├── login_page.dart
-      ├── registrasi_page.dart
-      ├── produk_page.dart
-      ├── produk_form.dart
-      └── produk_detail.dart
+tokokita/
+├── lib/                           # Flutter Frontend
+│   ├── main.dart                  # Entry point aplikasi
+│   ├── helpers/
+│   │   ├── api_url.dart          # Konfigurasi endpoint API
+│   │   └── user_info.dart        # Manajemen token & user data
+│   ├── model/
+│   │   ├── produk.dart           # Model Produk
+│   │   ├── login.dart            # Model Response Login
+│   │   └── registrasi.dart       # Model Response Registrasi
+│   └── ui/
+│       ├── login_page.dart       # Halaman Login
+│       ├── registrasi_page.dart  # Halaman Registrasi
+│       ├── produk_page.dart      # Halaman List Produk
+│       ├── produk_form.dart      # Halaman Form Tambah/Edit
+│       └── produk_detail.dart    # Halaman Detail Produk
+│
+└── toko-api/                      # CodeIgniter 4 Backend
+    ├── app/
+    │   ├── Controllers/
+    │   │   ├── LoginController.php
+    │   │   ├── RegistrasiController.php
+    │   │   └── ProdukController.php
+    │   └── Models/
+    │       ├── MMember.php
+    │       ├── MLogin.php
+    │       └── MProduk.php
+    └── public/
+        └── index.php             # Entry point API
 ```
 
----
+### 2. State Management
+Aplikasi ini menggunakan **StatefulWidget** untuk manajemen state pada setiap halaman. Data produk diambil dari API menggunakan package `http` dan disimpan dalam state lokal. Ketika terjadi perubahan data (tambah, edit, hapus), aplikasi akan memanggil fungsi `getData()` untuk memperbarui tampilan.
 
-# 🖼️ **Tampilan Aplikasi**
-
-| Halaman          | Screenshot                                 |
-| ---------------- | ------------------------------------------ |
-| 🔐 Login         | ![Login](screenshots/login.jpeg)           |
-| 📝 Registrasi    | ![Registrasi](screenshots/registrasi.jpeg) |
-| 📋 List Produk   | ![List](screenshots/list.jpeg)             |
-| ➕ Tambah Produk  | ![Tambah](screenshots/tambah.jpeg)         |
-| 🔍 Detail Produk | ![Detail](screenshots/detail.jpeg)         |
-
-Folder screenshot:
-📂 **/screenshots/**
-
----
-
-# 🧠 **Penjelasan Detail Setiap Halaman**
-
----
-
-## 🔐 **1. Halaman Login — `login_page.dart`**
-
-### 🎯 Tujuan:
-
-* Input email & password
-* Validasi form
-* Navigasi ke halaman Registrasi
-
-### 🌟 Komponen UI:
-
-| Komponen        | Fungsi                      |
-| --------------- | --------------------------- |
-| Email Field     | Input email                 |
-| Password Field  | Input password              |
-| Tombol Login    | Validasi form               |
-| Link Registrasi | Pergi ke halaman registrasi |
-
-### 🧾 Contoh AppBar:
-
+#### Contoh State Management di ProdukPage
 ```dart
-AppBar(
-  backgroundColor: Colors.blue,
-  title: const Text("Login Defit"),
-)
-```
+class _ProdukPageState extends State<ProdukPage> {
+  List<Produk> listProduk = [];
 
----
+  @override
+  void initState() {
+    super.initState();
+    getData();  // Load data saat halaman dibuka
+  }
 
-## 📝 **2. Halaman Registrasi — `registrasi_page.dart`**
-
-### 🎯 Tujuan:
-
-* Registrasi pengguna baru
-* Validasi email, password, konfirmasi password
-
-### 🌟 Komponen:
-
-* Nama
-* Email
-* Password
-* Konfirmasi Password
-* Tombol Registrasi
-
-### AppBar:
-
-```dart
-title: const Text("Registrasi Defit")
-```
-
----
-
-## 📋 **3. List Produk — `produk_page.dart`**
-
-### 🎯 Tujuan:
-
-Menampilkan daftar produk dalam bentuk card.
-
-### 🌟 Fitur:
-
-* List produk statis
-* Drawer menu (Logout)
-* Tombol tambah (+) → menuju form tambah produk
-* Klik item → buka detail produk
-
-### AppBar:
-
-```dart
-title: const Text("List Produk Defit")
-```
-
----
-
-## ➕ **4. Tambah / Edit Produk — `produk_form.dart`**
-
-### 🎯 Tujuan:
-
-Halaman serbaguna untuk:
-
-✔ Tambah produk
-✔ Edit produk
-
-### 🌟 Mode Otomatis:
-
-Jika `widget.produk != null` → mode edit.
-Jika null → mode tambah.
-
-### 🧾 Contoh penentuan mode:
-
-```dart
-if (widget.produk != null) {
-  judul = "UBAH PRODUK Defit";
-} else {
-  judul = "TAMBAH PRODUK Defit";
+  Future<void> getData() async {
+    try {
+      http.Response response = await http.get(
+        Uri.parse(ApiUrl.listProduk)
+      );
+      final data = json.decode(response.body);
+      
+      if (data['code'] == 200) {
+        setState(() {
+          listProduk = (data['data'] as List)
+            .map((json) => Produk.fromJson(json))
+            .toList();
+        });
+      }
+    } catch (e) {
+      // Error handling
+    }
+  }
 }
 ```
 
-### Komponen:
+### 3. API Integration
+Komunikasi dengan backend menggunakan HTTP requests:
 
-* TextField Kode Produk
-* TextField Nama Produk
-* TextField Harga
-* Tombol Ubah / Simpan
+#### GET - Mengambil Data
+```dart
+http.get(Uri.parse(ApiUrl.listProduk))
+```
 
----
+#### POST - Menambah Data
+```dart
+http.post(
+  Uri.parse(ApiUrl.createProduk),
+  headers: {"Content-Type": "application/json"},
+  body: json.encode(data),
+)
+```
 
-## 🔍 **5. Detail Produk — `produk_detail.dart`**
+#### PUT - Mengubah Data
+```dart
+http.put(
+  Uri.parse(ApiUrl.updateProduk(id)),
+  headers: {"Content-Type": "application/json"},
+  body: json.encode(data),
+)
+```
 
-### 🎯 Tujuan:
+#### DELETE - Menghapus Data
+```dart
+http.delete(Uri.parse(ApiUrl.deleteProduk(id)))
+```
 
-Menampilkan detail lengkap:
-
-* Kode Produk
-* Nama Produk
-* Harga Produk
-
-Termasuk tombol:
-
-* **Edit Produk** → membuka `produk_form.dart`
-* **Hapus Produk** → (siap dihubungkan API)
-
-### AppBar:
+### 4. Autentikasi & Token Management
+Setelah login berhasil, API mengirimkan token yang disimpan menggunakan `SharedPreferences`:
 
 ```dart
-title: const Text("Detail Produk Defit")
+// Simpan token
+UserInfo().setToken(login.token!);
+UserInfo().setUserID(login.userID.toString());
+UserInfo().setEmail(login.userEmail!);
+
+// Ambil token
+String? token = await UserInfo().getToken();
+
+// Logout (hapus semua data)
+await UserInfo().logout();
 ```
 
----
+### 5. UI Components
+Aplikasi menggunakan komponen Material Design standar Flutter dengan widget custom untuk konsistensi tampilan.
 
-# 🚀 **Cara Menjalankan Aplikasi**
+#### Widget ItemProduk
+```dart
+class ItemProduk extends StatelessWidget {
+  final Produk produk;
+  final VoidCallback? onUpdate;
 
-### 1. Install dependency:
+  const ItemProduk({
+    super.key, 
+    required this.produk, 
+    this.onUpdate
+  });
 
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProdukDetail(produk: produk),
+          ),
+        );
+        if (onUpdate != null) onUpdate!();
+      },
+      child: Card(
+        child: ListTile(
+          title: Text(produk.namaProduk!),
+          subtitle: Text("Rp. ${produk.hargaProduk}"),
+        ),
+      ),
+    );
+  }
+}
 ```
-flutter pub get
+
+## ✨ Fitur Aplikasi
+
+### 1. Registrasi Page
+![Registrasi Page](screenshots/ss%20registrasi%20tokokita.jpg)
+
+Pengguna dapat mendaftar dengan mengisi:
+- **Nama** (minimal 3 karakter)
+- **Email** (format email valid)
+- **Password** (minimal 6 karakter)
+- **Konfirmasi Password** (harus sama dengan password)
+
+Setelah registrasi berhasil, data disimpan ke database dengan password ter-hash menggunakan `password_hash()` di backend.
+
+### 2. Login Page
+![Login Page](screenshots/ss%20login%20tokokita.jpg)
+
+Pengguna login menggunakan email dan password. Backend akan:
+- Validasi kredensial
+- Generate token unik (100 karakter random)
+- Simpan token ke tabel `login`
+- Return token dan data user ke Flutter
+
+Token disimpan di `SharedPreferences` untuk digunakan pada request selanjutnya.
+
+### 3. List Produk Page
+![List Produk Page](screenshots/ss%20list%20produk%20tokokita.jpg)
+
+Menampilkan semua produk dari database dalam bentuk list card. Fitur:
+- **Auto-load data** saat halaman dibuka
+- **Loading indicator** saat fetch data
+- **Pull to refresh** setelah operasi CRUD
+- **Floating Action Button (+)** untuk tambah produk
+- **Drawer menu** dengan opsi logout
+
+### 4. Tambah Produk
+![Tambah Produk Page](screenshots/ss%20tambah%20produk%20tokokita.jpg)
+
+Form untuk menambah produk baru dengan field:
+- **Kode Produk** (wajib diisi)
+- **Nama Produk** (wajib diisi)
+- **Harga** (wajib diisi, hanya angka)
+
+Data dikirim ke API endpoint `POST /produk` dan otomatis muncul di list setelah berhasil disimpan.
+
+### 5. Edit Produk
+![Edit Produk Page](screenshots/ss%20ubah%20produk%20tokokita.jpg)
+
+Form yang sama dengan tambah produk, namun:
+- Field ter-isi data produk yang akan diedit
+- Tombol berubah menjadi "Ubah"
+- Data dikirim ke `PUT /produk/{id}`
+- List di-refresh setelah update berhasil
+
+### 6. Detail Produk
+![Detail Produk Page](screenshots/ss%20detail%20produk%20tokokita.jpg)
+
+Menampilkan informasi lengkap produk:
+- Kode Produk
+- Nama Produk
+- Harga (format Rupiah)
+
+Dengan aksi:
+- **Tombol EDIT**: Membuka form edit dengan data pre-filled
+- **Tombol DELETE**: Menampilkan dialog konfirmasi, lalu menghapus produk
+
+### 7. Logout
+Menu logout di drawer akan:
+- Hapus semua data dari `SharedPreferences` (token, userID, email)
+- Redirect ke halaman login
+- Clear navigation stack (tidak bisa back)
+
+## 🔐 Keamanan
+
+### Backend Security
+- **Password Hashing**: Menggunakan `password_hash()` PHP
+- **Token-based Auth**: Setiap user login mendapat token unik
+- **SQL Injection Protection**: Query menggunakan Query Builder CI4
+- **Input Validation**: Validasi di controller sebelum simpan ke database
+
+### Frontend Security
+- **No Credentials in Code**: Tidak ada username/password database di Flutter
+- **Token Storage**: Token disimpan aman di SharedPreferences
+- **HTTPS Ready**: Base URL bisa diganti ke HTTPS production
+
+## 📡 API Endpoints
+
+| Method | Endpoint | Fungsi | Request Body |
+|--------|----------|--------|--------------|
+| POST | `/registrasi` | Daftar user baru | `{nama, email, password}` |
+| POST | `/login` | Login & dapat token | `{email, password}` |
+| GET | `/produk` | List semua produk | - |
+| GET | `/produk/{id}` | Detail produk | - |
+| POST | `/produk` | Tambah produk | `{kode_produk, nama_produk, harga}` |
+| PUT | `/produk/{id}` | Update produk | `{kode_produk, nama_produk, harga}` |
+| DELETE | `/produk/{id}` | Hapus produk | - |
+
+### Response Format
+Semua endpoint mengembalikan JSON dengan format:
+```json
+{
+  "code": 200,
+  "status": true,
+  "data": { /* data atau pesan */ }
+}
 ```
-
-### 2. Jalankan aplikasi:
-
-```
-flutter run
-```
-
-### 3. Halaman pertama yang tampil:
-
-👉 **Login Defit**
-
----
-
-# 📌 *Catatan Penting*
-
-* Data produk masih **statis**, belum terhubung API.
-* UI mengikuti modul pertemuan 10.
-* Action Bar sudah memakai nama panggilan **Defit** sesuai instruksi dosen.
-
----

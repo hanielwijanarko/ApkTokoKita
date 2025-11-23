@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# CodeIgniter 4 Backend - Sensitive Files
+toko-api/writable/
+toko-api/vendor/
+toko-api/.env
+toko-api/app/Config/Database.php

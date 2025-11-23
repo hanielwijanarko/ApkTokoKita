@@ -169,7 +169,7 @@ class ItemProduk extends StatelessWidget {
 ## ✨ Fitur Aplikasi
 
 ### 1. Registrasi Page
-![Registrasi Page](screenshots/ss%20registrasi%20tokokita.jpg)
+<img src="screenshots/ss%20registrasi%20tokokita.jpg" width="300" alt="Registrasi Page">
 
 Pengguna dapat mendaftar dengan mengisi:
 - **Nama** (minimal 3 karakter)
@@ -180,7 +180,7 @@ Pengguna dapat mendaftar dengan mengisi:
 Setelah registrasi berhasil, data disimpan ke database dengan password ter-hash menggunakan `password_hash()` di backend.
 
 ### 2. Login Page
-![Login Page](screenshots/ss%20login%20tokokita.jpg)
+<img src="screenshots/ss%20login%20tokokita.jpg" width="300" alt="Login Page">
 
 Pengguna login menggunakan email dan password. Backend akan:
 - Validasi kredensial
@@ -191,7 +191,7 @@ Pengguna login menggunakan email dan password. Backend akan:
 Token disimpan di `SharedPreferences` untuk digunakan pada request selanjutnya.
 
 ### 3. List Produk Page
-![List Produk Page](screenshots/ss%20list%20produk%20tokokita.jpg)
+<img src="screenshots/ss%20list%20produk%20tokokita.jpg" width="300" alt="List Produk Page">
 
 Menampilkan semua produk dari database dalam bentuk list card. Fitur:
 - **Auto-load data** saat halaman dibuka
@@ -201,7 +201,7 @@ Menampilkan semua produk dari database dalam bentuk list card. Fitur:
 - **Drawer menu** dengan opsi logout
 
 ### 4. Tambah Produk
-![Tambah Produk Page](screenshots/ss%20tambah%20produk%20tokokita.jpg)
+<img src="screenshots/ss%20tambah%20produk%20tokokita.jpg" width="300" alt="Tambah Produk Page">
 
 Form untuk menambah produk baru dengan field:
 - **Kode Produk** (wajib diisi)
@@ -211,7 +211,7 @@ Form untuk menambah produk baru dengan field:
 Data dikirim ke API endpoint `POST /produk` dan otomatis muncul di list setelah berhasil disimpan.
 
 ### 5. Edit Produk
-![Edit Produk Page](screenshots/ss%20ubah%20produk%20tokokita.jpg)
+<img src="screenshots/ss%20ubah%20produk%20tokokita.jpg" width="300" alt="Edit Produk Page">
 
 Form yang sama dengan tambah produk, namun:
 - Field ter-isi data produk yang akan diedit
@@ -220,7 +220,7 @@ Form yang sama dengan tambah produk, namun:
 - List di-refresh setelah update berhasil
 
 ### 6. Detail Produk
-![Detail Produk Page](screenshots/ss%20detail%20produk%20tokokita.jpg)
+<img src="screenshots/ss%20detail%20produk%20tokokita.jpg" width="300" alt="Detail Produk Page">
 
 Menampilkan informasi lengkap produk:
 - Kode Produk
@@ -237,18 +237,6 @@ Menu logout di drawer akan:
 - Redirect ke halaman login
 - Clear navigation stack (tidak bisa back)
 
-## 🔐 Keamanan
-
-### Backend Security
-- **Password Hashing**: Menggunakan `password_hash()` PHP
-- **Token-based Auth**: Setiap user login mendapat token unik
-- **SQL Injection Protection**: Query menggunakan Query Builder CI4
-- **Input Validation**: Validasi di controller sebelum simpan ke database
-
-### Frontend Security
-- **No Credentials in Code**: Tidak ada username/password database di Flutter
-- **Token Storage**: Token disimpan aman di SharedPreferences
-- **HTTPS Ready**: Base URL bisa diganti ke HTTPS production
 
 ## 📡 API Endpoints
 

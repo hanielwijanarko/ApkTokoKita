@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:tokokita/helpers/api_url.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tokokita/bloc/produk_bloc.dart';
 import 'package:tokokita/model/produk.dart';
 
 class ProdukForm extends StatefulWidget {
@@ -49,21 +48,55 @@ class _ProdukFormState extends State<ProdukForm> {
         title: Text(judul),
         backgroundColor: Colors.blue,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                _kodeProdukTextField(),
-                _namaProdukTextField(),
-                _hargaProdukTextField(),
-                const SizedBox(height: 20),
-                _buttonSubmit(),
-              ],
-            ),
-          ),
+      body: BlocListener<ProdukBloc, ProdukState>(
+        listener: (context, state) {
+          if (state is ProdukOperationSuccess) {
+            // Tampilkan dialog sukses
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) => SuccessDialog(
+                description: state.message,
+                okClick: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+              ),
+            );
+          } else if (state is ProdukFailure) {
+            // Tampilkan dialog error
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) => WarningDialog(
+                description: state.error,
+              ),
+            );
+          }
+        },
+        child: BlocBuilder<ProdukBloc, ProdukState>(
+          builder: (context, state) {
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _kodeProdukTextField(),
+                      _namaProdukTextField(),
+                      _hargaProdukTextField(),
+                      const SizedBox(height: 20),
+                      if (state is ProdukLoading)
+                        const CircularProgressIndicator()
+                      else
+                        _buttonSubmit(),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -109,108 +142,31 @@ class _ProdukFormState extends State<ProdukForm> {
         var validate = _formKey.currentState!.validate();
         if (validate) {
           if (widget.produk != null) {
-            // Mode UBAH
-            ubah();
+            // Mode UBAH - Trigger UpdateProduk event
+            context.read<ProdukBloc>().add(
+                  UpdateProduk(
+                    id: widget.produk!.id!,
+                    kodeProduk: _kodeProdukTextboxController.text,
+                    namaProduk: _namaProdukTextboxController.text,
+                    hargaProduk:
+                        int.parse(_hargaProdukTextboxController.text),
+                  ),
+                );
           } else {
-            // Mode SIMPAN
-            simpan();
+            // Mode SIMPAN - Trigger CreateProduk event
+            context.read<ProdukBloc>().add(
+                  CreateProduk(
+                    kodeProduk: _kodeProdukTextboxController.text,
+                    namaProduk: _namaProdukTextboxController.text,
+                    hargaProduk:
+                        int.parse(_hargaProdukTextboxController.text),
+                  ),
+                );
           }
         }
       },
       child: Text(tombolSubmit),
     );
-  }
-
-  void simpan() {
-    final Map<String, dynamic> data = {
-      "kode_produk": _kodeProdukTextboxController.text,
-      "nama_produk": _namaProdukTextboxController.text,
-      "harga": int.parse(_hargaProdukTextboxController.text),
-    };
-
-    http.post(
-      Uri.parse(ApiUrl.createProduk),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode(data),
-    ).then((response) {
-      final responseData = json.decode(response.body);
-      
-      if (responseData['code'] == 200) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) => SuccessDialog(
-            description: "Produk berhasil disimpan",
-            okClick: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-          ),
-        );
-      } else {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) => const WarningDialog(
-            description: "Simpan produk gagal, silahkan coba lagi",
-          ),
-        );
-      }
-    }).catchError((error) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) => const WarningDialog(
-          description: "Simpan produk gagal, silahkan coba lagi",
-        ),
-      );
-    });
-  }
-
-  void ubah() {
-    final Map<String, dynamic> data = {
-      "kode_produk": _kodeProdukTextboxController.text,
-      "nama_produk": _namaProdukTextboxController.text,
-      "harga": int.parse(_hargaProdukTextboxController.text),
-    };
-
-    http.put(
-      Uri.parse(ApiUrl.updateProduk(int.parse(widget.produk!.id!))),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode(data),
-    ).then((response) {
-      final responseData = json.decode(response.body);
-      
-      if (responseData['code'] == 200) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) => SuccessDialog(
-            description: "Produk berhasil diubah",
-            okClick: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-          ),
-        );
-      } else {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) => const WarningDialog(
-            description: "Ubah produk gagal, silahkan coba lagi",
-          ),
-        );
-      }
-    }).catchError((error) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) => const WarningDialog(
-          description: "Ubah produk gagal, silahkan coba lagi",
-        ),
-      );
-    });
   }
 }
 

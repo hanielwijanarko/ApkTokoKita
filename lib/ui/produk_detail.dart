@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:tokokita/helpers/api_url.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tokokita/bloc/produk_bloc.dart';
 import 'package:tokokita/model/produk.dart';
 import 'package:tokokita/ui/produk_form.dart';
 
@@ -21,29 +20,63 @@ class _ProdukDetailState extends State<ProdukDetail> {
         title: const Text("Detail Produk Aulia"),
         backgroundColor: Colors.blue,
       ),
-      body: Center(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
+      body: BlocListener<ProdukBloc, ProdukState>(
+        listener: (context, state) {
+          if (state is ProdukOperationSuccess) {
+            // Tampilkan dialog sukses
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) => SuccessDialog(
+                description: state.message,
+                okClick: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+              ),
+            );
+          } else if (state is ProdukFailure) {
+            // Tampilkan dialog error
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) => WarningDialog(
+                description: state.error,
+              ),
+            );
+          }
+        },
+        child: BlocBuilder<ProdukBloc, ProdukState>(
+          builder: (context, state) {
+            if (state is ProdukLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return Center(
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
 
-            Text(
-              "Kode : ${widget.produk!.kodeProduk}",
-              style: const TextStyle(fontSize: 20),
-            ),
+                  Text(
+                    "Kode : ${widget.produk!.kodeProduk}",
+                    style: const TextStyle(fontSize: 20),
+                  ),
 
-            Text(
-              "Nama : ${widget.produk!.namaProduk}",
-              style: const TextStyle(fontSize: 18),
-            ),
+                  Text(
+                    "Nama : ${widget.produk!.namaProduk}",
+                    style: const TextStyle(fontSize: 18),
+                  ),
 
-            Text(
-              "Harga : Rp. ${widget.produk!.hargaProduk}",
-              style: const TextStyle(fontSize: 18),
-            ),
+                  Text(
+                    "Harga : Rp. ${widget.produk!.hargaProduk}",
+                    style: const TextStyle(fontSize: 18),
+                  ),
 
-            const SizedBox(height: 20),
-            _tombolHapusEdit(),
-          ],
+                  const SizedBox(height: 20),
+                  _tombolHapusEdit(),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -94,51 +127,16 @@ class _ProdukDetailState extends State<ProdukDetail> {
               child: const Text("Hapus"),
               onPressed: () {
                 Navigator.pop(context);
-                hapus();
+                // Trigger DeleteProduk event
+                context.read<ProdukBloc>().add(
+                      DeleteProduk(id: widget.produk!.id!),
+                    );
               },
             ),
           ],
         );
       },
     );
-  }
-
-  void hapus() {
-    http.delete(
-      Uri.parse(ApiUrl.deleteProduk(int.parse(widget.produk!.id!))),
-    ).then((response) {
-      final responseData = json.decode(response.body);
-      
-      if (responseData['code'] == 200) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) => SuccessDialog(
-            description: "Produk berhasil dihapus",
-            okClick: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-          ),
-        );
-      } else {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) => const WarningDialog(
-            description: "Hapus produk gagal, silahkan coba lagi",
-          ),
-        );
-      }
-    }).catchError((error) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) => const WarningDialog(
-          description: "Hapus produk gagal, silahkan coba lagi",
-        ),
-      );
-    });
   }
 }
 

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:tokokita/helpers/api_url.dart';
-import 'package:tokokita/model/registrasi.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tokokita/bloc/registrasi_bloc.dart';
 
 class RegistrasiPage extends StatefulWidget {
   const RegistrasiPage({super.key});
@@ -27,26 +25,61 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
         backgroundColor: Colors.blue,
         title: const Text("Registrasi Aulia"),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _namaField(),
-                const SizedBox(height: 10),
-                _emailField(),
-                const SizedBox(height: 10),
-                _passwordField(),
-                const SizedBox(height: 10),
-                _passwordKonfirmasiField(),
-                const SizedBox(height: 20),
-                Center(child: _buttonRegistrasi()),
-              ],
-            ),
-          ),
+      body: BlocListener<RegistrasiBloc, RegistrasiState>(
+        listener: (context, state) {
+          if (state is RegistrasiSuccess) {
+            // Tampilkan dialog sukses
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) => SuccessDialog(
+                description: "Registrasi berhasil, silahkan login",
+                okClick: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+              ),
+            );
+          } else if (state is RegistrasiFailure) {
+            // Tampilkan dialog error
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) => WarningDialog(
+                description: state.error,
+              ),
+            );
+          }
+        },
+        child: BlocBuilder<RegistrasiBloc, RegistrasiState>(
+          builder: (context, state) {
+            return SingleChildScrollView(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _namaField(),
+                      const SizedBox(height: 10),
+                      _emailField(),
+                      const SizedBox(height: 10),
+                      _passwordField(),
+                      const SizedBox(height: 10),
+                      _passwordKonfirmasiField(),
+                      const SizedBox(height: 20),
+                      if (state is RegistrasiLoading)
+                        const Center(child: CircularProgressIndicator())
+                      else
+                        Center(child: _buttonRegistrasi()),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -124,69 +157,27 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
     );
   }
 
+// Membuat Tombol Registrasi
   Widget _buttonRegistrasi() {
     return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.grey[300],
-        foregroundColor: Colors.black,
-        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-      ),
+      child: const Text("Registrasi"),
       onPressed: () {
-        if (_formKey.currentState!.validate()) {
-          _submit();
+        var validate = _formKey.currentState!.validate();
+        if (validate) {
+          // Trigger RegistrasiButtonPressed event
+          context.read<RegistrasiBloc>().add(
+                RegistrasiButtonPressed(
+                  nama: _namaController.text,
+                  email: _emailController.text,
+                  password: _passwordController.text,
+                ),
+              );
         }
       },
-      child: const Text("Registrasi"),
     );
   }
-
-  void _submit() {
-    _formKey.currentState!.save();
-    final Map<String, dynamic> data = {
-      "nama": _namaController.text,
-      "email": _emailController.text,
-      "password": _passwordController.text,
-    };
-
-    http.post(
-      Uri.parse(ApiUrl.registrasi),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode(data),
-    ).then((response) {
-      final responseData = json.decode(response.body);
-      Registrasi registrasi = Registrasi.fromJson(responseData);
-
-      if (registrasi.code == 200) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) => SuccessDialog(
-            description: "Registrasi berhasil, silahkan login",
-            okClick: () {
-              Navigator.pop(context);
-            },
-          ),
-        );
-      } else {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) => const WarningDialog(
-            description: "Registrasi gagal, silahkan coba lagi",
-          ),
-        );
-      }
-    }).catchError((error) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) => const WarningDialog(
-          description: "Registrasi gagal, silahkan coba lagi",
-        ),
-      );
-    });
-  }
 }
+
 
 // Dialog Success
 class SuccessDialog extends StatelessWidget {

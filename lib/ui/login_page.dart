@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:tokokita/helpers/api_url.dart';
-import 'package:tokokita/helpers/user_info.dart';
-import 'package:tokokita/model/login.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tokokita/bloc/login_bloc.dart';
 import 'package:tokokita/ui/registrasi_page.dart';
 import 'package:tokokita/ui/produk_page.dart';
 
@@ -27,24 +24,54 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Colors.blue,
         title: const Text("Login Aulia"),   // Sesuai instruksi nama panggilan
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _emailField(),
-                const SizedBox(height: 10),
-                _passwordField(),
-                const SizedBox(height: 20),
-                Center(child: _buttonLogin()),
-                const SizedBox(height: 20),
-                Center(child: _menuRegistrasi()),
-              ],
-            ),
-          ),
+      body: BlocListener<LoginBloc, LoginState>(
+        listener: (context, state) {
+          if (state is LoginSuccess) {
+            // Navigasi ke ProdukPage
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProdukPage(),
+              ),
+            );
+          } else if (state is LoginFailure) {
+            // Tampilkan dialog error
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) => WarningDialog(
+                description: state.error,
+              ),
+            );
+          }
+        },
+        child: BlocBuilder<LoginBloc, LoginState>(
+          builder: (context, state) {
+            return SingleChildScrollView(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _emailField(),
+                      const SizedBox(height: 10),
+                      _passwordField(),
+                      const SizedBox(height: 20),
+                      if (state is LoginLoading)
+                        const Center(child: CircularProgressIndicator())
+                      else
+                        Center(child: _buttonLogin()),
+                      const SizedBox(height: 20),
+                      Center(child: _menuRegistrasi()),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -100,59 +127,17 @@ class _LoginPageState extends State<LoginPage> {
       ),
       onPressed: () {
         if (_formKey.currentState!.validate()) {
-          _submit();
+          // Trigger LoginButtonPressed event
+          context.read<LoginBloc>().add(
+                LoginButtonPressed(
+                  email: _emailController.text,
+                  password: _passwordController.text,
+                ),
+              );
         }
       },
       child: const Text("Login"),
     );
-  }
-
-  void _submit() {
-    _formKey.currentState!.save();
-    final Map<String, dynamic> data = {
-      "email": _emailController.text,
-      "password": _passwordController.text,
-    };
-
-    http.post(
-      Uri.parse(ApiUrl.login),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode(data),
-    ).then((response) {
-      final responseData = json.decode(response.body);
-      Login login = Login.fromJson(responseData);
-
-      if (login.code == 200) {
-        // Simpan token dan user info
-        UserInfo().setToken(login.token!);
-        UserInfo().setUserID(login.userID.toString());
-        UserInfo().setEmail(login.userEmail!);
-
-        // Navigasi ke ProdukPage
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ProdukPage(),
-          ),
-        );
-      } else {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) => const WarningDialog(
-            description: "Login gagal, periksa email dan password Anda",
-          ),
-        );
-      }
-    }).catchError((error) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) => const WarningDialog(
-          description: "Login gagal, silahkan coba lagi",
-        ),
-      );
-    });
   }
 
   Widget _menuRegistrasi() {

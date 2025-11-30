@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:tokokita/helpers/api_url.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tokokita/bloc/produk_bloc.dart';
 import 'package:tokokita/helpers/user_info.dart';
 import 'package:tokokita/model/produk.dart';
 import 'package:tokokita/ui/login_page.dart';
@@ -16,40 +15,11 @@ class ProdukPage extends StatefulWidget {
 }
 
 class _ProdukPageState extends State<ProdukPage> {
-  List<Produk> listProduk = [];
-
   @override
   void initState() {
     super.initState();
-    getData();
-  }
-
-  Future<void> getData() async {
-    try {
-      http.Response response = await http.get(Uri.parse(ApiUrl.listProduk));
-      final data = json.decode(response.body);
-      
-      if (data['code'] == 200) {
-        final List produkData = data['data'];
-        setState(() {
-          listProduk = produkData.map((json) => Produk.fromJson(json)).toList();
-        });
-      }
-    } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Error"),
-          content: Text("Gagal mengambil data: $e"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
-        ),
-      );
-    }
+    // Load produk menggunakan BLoC
+    context.read<ProdukBloc>().add(LoadProduk());
   }
 
   @override
@@ -68,7 +38,8 @@ class _ProdukPageState extends State<ProdukPage> {
                   context,
                   MaterialPageRoute(builder: (context) => ProdukForm()),
                 );
-                getData(); // Refresh data setelah tambah
+                // Reload data setelah tambah
+                context.read<ProdukBloc>().add(LoadProduk());
               },
             ),
           ),
@@ -94,21 +65,63 @@ class _ProdukPageState extends State<ProdukPage> {
         ),
       ),
 
-      body: listProduk.isEmpty
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : ListView.builder(
-              itemCount: listProduk.length,
-              itemBuilder: (context, index) {
-                return ItemProduk(
-                  produk: listProduk[index],
-                  onUpdate: () {
-                    getData(); // Refresh data setelah update/delete
-                  },
-                );
-              },
-            ),
+      body: BlocListener<ProdukBloc, ProdukState>(
+        listener: (context, state) {
+          if (state is ProdukOperationSuccess) {
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          } else if (state is ProdukFailure) {
+            // Show error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        child: BlocBuilder<ProdukBloc, ProdukState>(
+          builder: (context, state) {
+            if (state is ProdukLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is ProdukLoaded) {
+              if (state.listProduk.isEmpty) {
+                return const Center(child: Text("Tidak ada produk"));
+              }
+              return ListView.builder(
+                itemCount: state.listProduk.length,
+                itemBuilder: (context, index) {
+                  return ItemProduk(
+                    produk: state.listProduk[index],
+                    onUpdate: () {
+                      context.read<ProdukBloc>().add(LoadProduk());
+                    },
+                  );
+                },
+              );
+            } else if (state is ProdukFailure) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Error: ${state.error}"),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<ProdukBloc>().add(LoadProduk());
+                      },
+                      child: const Text("Coba Lagi"),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
+      ),
     );
   }
 }

@@ -243,8 +243,6 @@ User Input (email, password)
 
 ### 📦 C. Proses Melihat List Produk (READ)
 
-<img src="screenshots/ss%20list%20produk%20tokokita.jpg" width="300" alt="List Produk">
-
 **Flow Read:**
 ```
 initState() → LoadProduk event
@@ -256,8 +254,6 @@ initState() → LoadProduk event
 ```
 
 ### ➕ D. Proses Tambah Produk (CREATE)
-
-<img src="screenshots/ss tambah produk tokokita.jpg" width="300" alt="Tambah Produk">
 
 **Flow Create:**
 ```
@@ -273,8 +269,6 @@ User klik FAB (+) → ProdukForm
 
 ### ✏️ E. Proses Ubah Produk (UPDATE)
 
-<img src="screenshots/ss%20ubah%20produk%20tokokita.jpg" width="300" alt="Ubah Produk">
-
 **Flow Update:**
 ```
 User klik produk → ProdukDetail
@@ -287,8 +281,6 @@ User klik produk → ProdukDetail
 ```
 
 ### 🗑️ F. Proses Hapus Produk (DELETE)
-
-<img src="screenshots/ss%20detail%20produk%20tokokita.jpg" width="300" alt="Detail Produk">
 
 **Flow Delete:**
 ```

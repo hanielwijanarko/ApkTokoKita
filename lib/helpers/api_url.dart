@@ -1,7 +1,7 @@
 class ApiUrl {
   // Base URL API - Sesuaikan dengan lokasi API Anda
   // Gunakan IP komputer untuk testing di device fisik
-  static const String baseUrl = "http://192.168.100.42/toko-api/public";
+  static const String baseUrl = "http://10.99.4.182:8080";
   
   // Alternatif untuk testing:
   // - Localhost: "http://localhost/toko-api/public"

@@ -23,7 +23,7 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text("Registrasi Aulia"),
+        title: const Text("Registrasi Haniel"),
       ),
       body: BlocListener<RegistrasiBloc, RegistrasiState>(
         listener: (context, state) {

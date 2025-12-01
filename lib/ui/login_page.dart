@@ -22,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text("Login Aulia"),   // Sesuai instruksi nama panggilan
+        title: const Text("Login Haniel"),   // Sesuai instruksi nama panggilan
       ),
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {

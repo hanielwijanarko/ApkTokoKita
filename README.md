@@ -1,10 +1,10 @@
-# 🛒 Aplikasi Toko Kita - CRUD Produk dengan BLoC Pattern
+# 🛒 Aplikasi Toko Kita
 
 ## 👤 Informasi Praktikan
-- **Nama**: Naufal Aulia Pratama
-- **NIM**: H1D023036
-- **Shift Awal / Baru**: E / A
-- **Pertemuan**: 11 - CRUD 2 (BLoC Pattern)
+- **Nama**: Haniel Wijanarko
+- **NIM**: H1D023052
+- **Shift Awal / Baru**: F / E
+- **Pertemuan**: 11 - BLoC Pattern
 
 
 ## 📱 Deskripsi
@@ -54,19 +54,6 @@ tokokita/
 ### 2. BLoC Pattern State Management
 
 Aplikasi ini menggunakan **flutter_bloc** package untuk implementasi BLoC pattern. BLoC memisahkan business logic dari UI layer, making code lebih testable, maintainable, dan scalable.
-
-#### Arsitektur BLoC
-```
-┌─────────────┐      Event       ┌──────────┐      State      ┌─────────────┐
-│  UI Layer   │ ──────────────> │   BLoC   │ ──────────────> │  UI Layer   │
-│ (Widget)    │                  │ (Logic)  │                  │ (Widget)    │
-└─────────────┘                  └──────────┘                  └─────────────┘
-                                      │
-                                      ▼
-                                 ┌──────────┐
-                                 │   API    │
-                                 └──────────┘
-```
 
 #### Komponen BLoC Pattern
 
@@ -124,7 +111,6 @@ context.read<LoginBloc>().add(LoginButtonPressed(...));
 ✅ **Maintainability**: Kode lebih terstruktur dan mudah dikelola  
 ✅ **State Management**: Centralized state management dengan stream  
 
-### 3. API Integration dengan BLoC
 ### 3. API Integration dengan BLoC
 Komunikasi dengan backend menggunakan HTTP requests yang dihandle oleh BLoC:
 
@@ -223,32 +209,11 @@ context.read<ProdukBloc>().add(UpdateProduk(id, kode, nama, harga));
 context.read<ProdukBloc>().add(DeleteProduk(id: produk.id));
 ```
 
-**Auto-reload**: Setiap operasi CUD otomatis trigger `add(LoadProduk())` untuk refresh list.
-
-### 4. Autentikasi & Token Management
-
-LoginBloc menangani autentikasi dan menyimpan token:
-
-```dart
-// Login Success → Simpan token
-if (data['code'] == 200) {
-  Login login = Login.fromJson(data);
-  await UserInfo().setToken(login.token!);
-  await UserInfo().setUserID(login.userID.toString());
-  emit(LoginSuccess(login: login));
-}
-
-// Logout → Hapus semua data
-await UserInfo().logout();
-```
-
----
-
 ## 📋 Penjelasan Proses CRUD dengan BLoC Pattern
 
 ### 🔐 A. Proses Registrasi
 
-<img src="screenshots/ss%20registrasi%20tokokita.jpg" width="300" alt="Registrasi Page">
+<img src="screenshots/ss%20registrasi%20tokokita.png" width="300" alt="Registrasi Page">
 
 **Flow Registrasi:**
 ```
@@ -261,30 +226,9 @@ User Input (nama, email, password)
   → Dialog sukses → Navigate ke LoginPage
 ```
 
-**Implementasi Key Code:**
-```dart
-// Trigger event
-context.read<RegistrasiBloc>().add(
-  RegistrasiButtonPressed(nama, email, password),
-);
-
-// Listen result
-BlocListener<RegistrasiBloc, RegistrasiState>(
-  listener: (context, state) {
-    if (state is RegistrasiSuccess) {
-      showDialog(...); // Success → back to login
-    } else if (state is RegistrasiFailure) {
-      showDialog(...); // Error message
-    }
-  },
-)
-```
-
----
-
 ### 🔓 B. Proses Login
 
-<img src="screenshots/ss%20login%20tokokita.jpg" width="300" alt="Login Page">
+<img src="screenshots/ss%20login%20tokokita.png" width="300" alt="Login Page">
 
 **Flow Login:**
 ```
@@ -296,25 +240,6 @@ User Input (email, password)
   → Save token ke SharedPreferences
   → LoginSuccess → Navigate ke ProdukPage
 ```
-
-**Implementasi Key Code:**
-```dart
-// Trigger event
-context.read<LoginBloc>().add(
-  LoginButtonPressed(email, password),
-);
-
-// Listen & navigate
-BlocListener<LoginBloc, LoginState>(
-  listener: (context, state) {
-    if (state is LoginSuccess) {
-      Navigator.pushReplacement(context, ProdukPage());
-    }
-  },
-)
-```
-
----
 
 ### 📦 C. Proses Melihat List Produk (READ)
 
@@ -329,24 +254,6 @@ initState() → LoadProduk event
   → ProdukLoaded(listProduk)
   → ListView.builder tampilkan data
 ```
-
-**Implementasi Key Code:**
-```dart
-@override
-void initState() {
-  context.read<ProdukBloc>().add(LoadProduk());
-}
-
-BlocBuilder<ProdukBloc, ProdukState>(
-  builder: (context, state) {
-    if (state is ProdukLoading) return CircularProgressIndicator();
-    if (state is ProdukLoaded) return ListView.builder(...);
-    if (state is ProdukFailure) return ErrorWidget();
-  },
-)
-```
-
----
 
 ### ➕ D. Proses Tambah Produk (CREATE)
 
@@ -364,21 +271,6 @@ User klik FAB (+) → ProdukForm
   → Dialog sukses → Navigate back
 ```
 
-**Implementasi Key Code:**
-```dart
-context.read<ProdukBloc>().add(
-  CreateProduk(kodeProduk, namaProduk, hargaProduk),
-);
-
-// BLoC auto-reload setelah create
-if (data['code'] == 200) {
-  emit(ProdukOperationSuccess(message: 'Produk berhasil ditambahkan'));
-  add(LoadProduk()); // Auto-reload
-}
-```
-
----
-
 ### ✏️ E. Proses Ubah Produk (UPDATE)
 
 <img src="screenshots/ss%20ubah%20produk%20tokokita.jpg" width="300" alt="Ubah Produk">
@@ -394,22 +286,6 @@ User klik produk → ProdukDetail
   → Auto-reload → Dialog sukses
 ```
 
-**Implementasi Key Code:**
-```dart
-// Detect mode & pre-fill
-if (widget.produk != null) {
-  _kodeProdukController.text = widget.produk!.kodeProduk!;
-  // ...
-}
-
-// Trigger update
-context.read<ProdukBloc>().add(
-  UpdateProduk(id, kodeProduk, namaProduk, hargaProduk),
-);
-```
-
----
-
 ### 🗑️ F. Proses Hapus Produk (DELETE)
 
 <img src="screenshots/ss%20detail%20produk%20tokokita.jpg" width="300" alt="Detail Produk">
@@ -423,28 +299,6 @@ User klik "DELETE" → Dialog konfirmasi
   → Auto-reload → Dialog sukses → Navigate back
 ```
 
-**Implementasi Key Code:**
-```dart
-void confirmHapus() {
-  showDialog(
-    builder: (context) => AlertDialog(
-      title: Text("Konfirmasi Hapus"),
-      actions: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-            context.read<ProdukBloc>().add(DeleteProduk(id: produk.id));
-          },
-          child: Text("Hapus"),
-        ),
-      ],
-    ),
-  );
-}
-```
-
----
-
 ### 🚪 G. Proses Logout
 
 **Flow Logout:**
@@ -454,16 +308,3 @@ User klik Drawer → "Logout"
   → Navigator.pushAndRemoveUntil → LoginPage
   → Clear navigation stack
 ```
-
-**Implementasi Key Code:**
-```dart
-onTap: () {
-  UserInfo().logout();
-  Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(builder: (context) => LoginPage()),
-    (route) => false, // Clear all routes
-  );
-}
-```
-**Last Updated**: 30 November 2025 - Pertemuan 11 (CRUD 2 dengan BLoC Pattern)
